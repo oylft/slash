@@ -1,5 +1,5 @@
 - host: wuhit.com
-  port: 22
+  port: 2222
   user: dev@root@192.169.0.1
   password: slash
   tasks:
