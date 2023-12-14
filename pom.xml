@@ -90,6 +90,7 @@
                   <executable>java</executable>
                   <workingDirectory>${project.build.directory}</workingDirectory>
                   <arguments>
+                    <argument>--enable-preview</argument>
                     <argument>-classpath</argument>
                     <classpath/>
                     <argument>${mainClass}</argument>

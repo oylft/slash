@@ -28,6 +28,7 @@ public class App {
             LocalDateTime endTime = LocalDateTime.now();
 
             long l = Duration.between(startTime, endTime).get(ChronoUnit.SECONDS);
+            System.out.println();
             Typewriter.print("Slash is done!");
             Typewriter.print(STR."Took: \{l}s");
         } catch (Exception e) {
