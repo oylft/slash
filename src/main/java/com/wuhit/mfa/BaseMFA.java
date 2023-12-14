@@ -2,14 +2,14 @@ package com.wuhit.mfa;
 
 public abstract class BaseMFA {
 
-    private String secretKey;
+    private String secret;
 
 
     public abstract String otpCode();
 
 
-    public BaseMFA(String secretKey) {
-        this.secretKey = secretKey;
+    public BaseMFA(String secret) {
+        this.secret = secret;
     }
 
     private BaseMFA() {

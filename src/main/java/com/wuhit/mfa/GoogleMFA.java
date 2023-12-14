@@ -8,9 +8,9 @@ public class GoogleMFA extends BaseMFA {
     private GoogleAuthenticatorKey key;
     private GoogleAuthenticator auth = new GoogleAuthenticator();
 
-    public GoogleMFA(String secretKey) {
-        super(secretKey);
-        key = new GoogleAuthenticatorKey.Builder(secretKey).build();
+    public GoogleMFA(String secret) {
+        super(secret);
+        key = new GoogleAuthenticatorKey.Builder(secret).build();
     }
 
     public String otpCode() {

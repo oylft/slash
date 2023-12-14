@@ -37,8 +37,8 @@ public class SshClient {
 
     private void initMFAAuth() {
 
-        if (ssh.mfa() != null && StringUtils.isNotBlank(ssh.mfa().key())) {
-            mfa = new GoogleMFA(ssh.mfa().key());
+        if (ssh.mfa() != null && StringUtils.isNotBlank(ssh.mfa().secret())) {
+            mfa = new GoogleMFA(ssh.mfa().secret());
         }
 
     }
