@@ -1,0 +1,10 @@
+- host: wuhit.com
+  port: 22
+  user: dev@root@192.169.0.1
+  password: slash
+  tasks:
+    - alias: web
+      remoteDir: /192.169.0.1
+      localPath: /Users/zhaoxin/Pictures/F6zHvUFWgAA-dj-.jpeg
+      beforeCommand: pwd
+      afterCommand: ls
