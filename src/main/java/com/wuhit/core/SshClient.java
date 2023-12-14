@@ -204,7 +204,7 @@ public class SshClient {
         if (StringUtils.isNotBlank(task.beforeCommand())) {
             logger.info(STR."Execute before command [\{task.beforeCommand()}]");
             String responseString = runCommand(task.beforeCommand());
-            logger.info(STR."Response [\{responseString}]");
+            logger.info(STR."Response [\n\{responseString}\n]");
         }
 
         try {
@@ -220,7 +220,7 @@ public class SshClient {
         if (StringUtils.isNotBlank(task.afterCommand())) {
             logger.info(STR."Execute after command [\{task.afterCommand()}]");
             String responseString = runCommand(task.afterCommand());
-            logger.info(STR."Response [\{responseString}]");
+            logger.info(STR."Response [\n\{responseString}\n]");
         }
 
     }
