@@ -25,6 +25,8 @@ public class Slash {
 
     slashHome = System.getProperty("user.dir");
 
+    System.out.println(STR."load the \{configFileName}.");
+
     File configFile = Paths.get(slashHome + File.separator + configFileName).toFile();
 
     if (configFile.exists() == false) {
