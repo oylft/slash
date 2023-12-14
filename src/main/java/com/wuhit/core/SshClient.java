@@ -8,6 +8,8 @@ import com.wuhit.configure.LocalFile;
 import com.wuhit.configure.Ssh;
 import com.wuhit.configure.SshTask;
 import com.wuhit.configure.UserInfo;
+import com.wuhit.mfa.BaseMFA;
+import com.wuhit.mfa.GoogleMFA;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,6 +32,17 @@ public class SshClient {
 
     private List<String> ignoreFiles = Arrays.asList(".DS_Store", "__MACOSX");
 
+    private BaseMFA mfa;
+
+
+    private void initMFAAuth() {
+
+        if (ssh.mfa() != null && StringUtils.isNotBlank(ssh.mfa().key())) {
+            mfa = new GoogleMFA(ssh.mfa().key());
+        }
+
+    }
+
     public void connect() {
 
         jSch = new JSch();
@@ -42,7 +55,7 @@ public class SshClient {
 
             session.setConfig("StrictHostKeyChecking", "no");
 
-            session.setUserInfo(new UserInfo(ssh.password()));
+            session.setUserInfo(new UserInfo(ssh.password(), mfa));
 
             session.connect(10 * 1000);
 
@@ -248,6 +261,7 @@ public class SshClient {
     public SshClient(String slashHome, Ssh ssh) {
         this.ssh = ssh;
         logger = new Logger(slashHome, ssh.host(), File.separator);
+        initMFAAuth();
         connect();
         openSftp();
     }

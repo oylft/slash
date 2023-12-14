@@ -2,6 +2,8 @@
   port: 2222
   user: dev@root@192.169.0.1
   password: slash
+  mfa:
+    key: D4DDFZ2TCUO26Ri2
   tasks:
     - alias: web
       remoteDir: 192.169.0.1
