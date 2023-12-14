@@ -17,7 +17,10 @@ public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive
         String[] strings;
 
         if (prompt[0].contains("OTP Code") && mfa != null) {
-            strings = new String[]{mfa.otpCode()};
+            System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
+            String opdCode = mfa.otpCode();
+            System.out.println(STR."\u001B[32m\{opdCode}\u001B[0m");
+            strings = new String[]{opdCode};
         } else {
             Scanner scanner = new Scanner(System.in);
             System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
