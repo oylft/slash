@@ -8,6 +8,7 @@ import com.wuhit.configure.Ssh;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Slash {
@@ -17,6 +18,8 @@ public class Slash {
   private String slashHome;
 
   private List<Ssh> sshes;
+
+  private List<SshClient> sshClients = new ArrayList<>();
 
   public void loadDefinitions() {
 
@@ -46,10 +49,15 @@ public class Slash {
 
     for (Ssh ssh : sshes) {
       SshClient sshClient = new SshClient(slashHome, ssh);
+      sshClients.add(sshClient);
+      sshClient.run();
     }
 
+  }
 
-
+  public void clear() {
+    sshes = null;
+    sshClients.forEach(SshClient::disconnect);
   }
 
   public Slash(String profile) {

@@ -1,66 +1,257 @@
 package com.wuhit.core;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import com.wuhit.Logger;
 import com.wuhit.SlashException;
+import com.wuhit.StringUtils;
+import com.wuhit.configure.LocalFile;
 import com.wuhit.configure.Ssh;
+import com.wuhit.configure.SshTask;
 import com.wuhit.configure.UserInfo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class SshClient {
 
-  private String slashHome;
+    private Ssh ssh;
 
-  private Ssh ssh;
+    private Logger logger;
 
-  private Logger logger;
+    private JSch jSch;
 
-  private JSch jSch;
+    private Session session;
 
-  private Session session;
+    private ChannelSftp channelSftp = null;
 
-  public void connect() {
+    private List<String> ignoreFiles = Arrays.asList(".DS_Store", "__MACOSX");
 
-    jSch = new JSch();
+    public void connect() {
 
-    String user = ssh.user();
-    String host = ssh.host();
+        jSch = new JSch();
 
-    try {
-      session = jSch.getSession(user, host, ssh.port());
+        String user = ssh.user();
+        String host = ssh.host();
 
-      session.setConfig("StrictHostKeyChecking", "no");
+        try {
+            session = jSch.getSession(user, host, ssh.port());
 
-      session.setUserInfo(new UserInfo(ssh.password()));
+            session.setConfig("StrictHostKeyChecking", "no");
 
-      session.connect(10 * 1000);
+            session.setUserInfo(new UserInfo(ssh.password()));
 
-    } catch (JSchException e) {
-      throw new SlashException(e.getMessage());
+            session.connect(10 * 1000);
+
+        } catch (JSchException e) {
+            throw new SlashException(e.getMessage());
+        }
+
+        logger.info(STR."Connection to host \{user}@\{host} successful.");
+
     }
 
-    logger.info(STR."Connection to host \{user}@\{host} successful.");
+    private String runCommand(String command) {
 
-  }
+        ChannelExec channelExec = null;
+        try {
+
+            channelExec = (ChannelExec) session.openChannel("exec");
+
+            channelExec.setCommand(command);
+
+            ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
+            channelExec.setOutputStream(responseStream);
+
+            channelExec.connect();
+
+            while (channelExec.isConnected()) {
+                Thread.sleep(100);
+            }
+
+            return new String(responseStream.toByteArray());
 
 
-  public void disconnect() {
-    if (session != null) {
-      session.disconnect();
+        } catch (JSchException e) {
+            throw new SlashException(e.getMessage());
+        } catch (InterruptedException e) {
+            throw new SlashException(e.getMessage());
+        } finally {
+            if (channelExec != null) {
+                channelExec.disconnect();
+            }
+        }
+
     }
-    jSch = null;
-    logger.destroy();
-  }
 
-  public SshClient(String slashHome, Ssh ssh) {
-    this.slashHome = slashHome;
-    this.ssh = ssh;
-    this.logger = new Logger(slashHome, ssh.host(), File.separator);
-    this.connect();
-  }
+    private void openSftp() {
 
-  private SshClient() {}
+        try {
+            channelSftp = (ChannelSftp) session.openChannel("sftp");
+            channelSftp.connect(10 * 1000);
+
+        } catch (JSchException e) {
+            throw new SlashException(e.getMessage());
+        }
+
+    }
+
+    private List<LocalFile> traverseDirectory(String rootPath, File file) {
+
+        List<LocalFile> localFiles = new ArrayList<>();
+
+        if (file.isDirectory()) {
+
+            File[] files = file.listFiles();
+
+            for (File f : files) {
+                localFiles.addAll(traverseDirectory(rootPath, f));
+            }
+
+        } else {
+
+            String fileName = file.getName();
+
+            if (ignoreFiles.contains(fileName)) {
+                return localFiles;
+            }
+
+            String absolutePath = file.getAbsolutePath();
+
+            String parentDir = absolutePath.substring(0, absolutePath.length() - fileName.length() - 1);
+
+            String relativePath = parentDir.substring(rootPath.length()).replaceAll(File.separator, "/");
+
+            localFiles.add(new LocalFile(absolutePath, relativePath, fileName));
+        }
+
+        return localFiles;
+
+    }
+
+    private void traverseMkdirDirectory(String remoteDir) {
+
+        try {
+            channelSftp.ls(remoteDir);
+        } catch (SftpException e) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                String[] dirs = remoteDir.split("/");
+                StringBuilder currentDir = new StringBuilder("/");
+                for (String dir : dirs) {
+                    if (!dir.isEmpty()) {
+                        currentDir.append(dir).append("/");
+                        try {
+                            channelSftp.ls(currentDir.toString());
+                        } catch (SftpException ex) {
+                            if (ex.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                                try {
+                                    channelSftp.mkdir(currentDir.toString());
+                                } catch (SftpException exc) {
+                                    throw new SlashException(exc.getMessage());
+                                }
+                            } else {
+                                throw new SlashException(ex.getMessage());
+                            }
+                        }
+                    }
+                }
+            } else {
+                throw new SlashException(e.getMessage());
+            }
+        }
+    }
+
+    public void upload(LocalFile file, String remoteDir) throws SftpException {
+        channelSftp.put(file.localPath(), STR."\{remoteDir}\{file.relativePath()}/\{file.fileName()}", new SlashProgressMonitor(file.localPath()));
+    }
+
+
+    private String getParentPath(File localFile) {
+        if (localFile.isDirectory()) {
+            return localFile.getAbsolutePath();
+        } else {
+            return localFile.getParent();
+        }
+    }
+
+    private void runTask(SshTask task) {
+        String alias = task.alias();
+        logger.info(STR."Execute Task [\{alias}]");
+
+        String localPath = task.localPath();
+
+        File localFile = Paths.get(localPath).toFile();
+
+        if (localFile.exists() == false) {
+            throw new SlashException(STR."The path '\{localFile.getAbsolutePath()}' does not exist.");
+        }
+
+        String remoteDir = task.remoteDir();
+
+        if (StringUtils.isBlank(remoteDir)) {
+            throw new SlashException(STR."The remote path is empty.");
+        }
+
+        try {
+            channelSftp.ls(remoteDir);
+        } catch (SftpException e) {
+            throw new SlashException(STR."The remote path \{remoteDir} does not exist.\{e.getMessage()}");
+        }
+
+        if (StringUtils.isNotBlank(task.beforeCommand())) {
+            logger.info(STR."Execute before command [\{task.beforeCommand()}]");
+            String responseString = runCommand(task.beforeCommand());
+            logger.info(STR."Response [\{responseString}]");
+        }
+
+        try {
+            List<LocalFile> localFiles = traverseDirectory(getParentPath(localFile), localFile);
+            for (LocalFile file : localFiles) {
+                traverseMkdirDirectory(STR."\{remoteDir}\{file.relativePath()}");
+                upload(file, remoteDir);
+            }
+        } catch (SftpException e) {
+            throw new SlashException(e.getMessage());
+        }
+
+        if (StringUtils.isNotBlank(task.afterCommand())) {
+            logger.info(STR."Execute after command [\{task.afterCommand()}]");
+            String responseString = runCommand(task.afterCommand());
+            logger.info(STR."Response [\{responseString}]");
+        }
+
+    }
+
+
+    public void run() {
+        ssh.tasks().forEach(this::runTask);
+    }
+
+
+    public void disconnect() {
+
+        if (channelSftp != null) {
+            channelSftp.exit();
+            channelSftp.disconnect();
+        }
+
+        if (session != null) {
+            session.disconnect();
+        }
+        jSch = null;
+        logger.destroy();
+    }
+
+    public SshClient(String slashHome, Ssh ssh) {
+        this.ssh = ssh;
+        logger = new Logger(slashHome, ssh.host(), File.separator);
+        connect();
+        openSftp();
+    }
+
+    private SshClient() {
+    }
 }
