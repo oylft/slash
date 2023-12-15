@@ -2,9 +2,11 @@
   port: 22
   user: dev
   password: slash
+  mfa:
+    secret: D4DDFZ2TCUO26Ri2
   tasks:
     - alias: web
       remoteDir: /root
       localPath: /Users/zhaoxin/Pictures/F6zHvUFWgAA-dj-.jpeg
-      beforeCommand: rm -rf ./*
+      beforeCommand: pwd
       afterCommand: ls
