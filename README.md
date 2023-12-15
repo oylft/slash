@@ -1,6 +1,6 @@
 # Slash
-<a href="https://github.com/Rich-Harris/magic-string/blob/master/LICENSE.md">
-  <img src="https://github.com/wuhit/slash/blob/master/assets/license.svg" alt="license">
+<a href="https://github.com/Rich-Harris/magic-string/blob/main/LICENSE.md">
+  <img src="https://github.com/wuhit/slash/blob/main/license.svg" alt="license">
 </a>
 
 It's a small, fast utility for SSH and Sftp.
@@ -11,7 +11,7 @@ Deploying your project to the server uses `Slash`.
 
 ### Command
 
-Slash use a `config-[alias].yml` file in the current directory.
+Slash uses a `config-[alias].yml` file in the current directory.
 
 ```bash
   slash [alias]
@@ -20,7 +20,7 @@ Slash use a `config-[alias].yml` file in the current directory.
 ```bash
   slash dev
 ```
-Use the `config-dev.yml` file in the current directory.
+Uses the `config-dev.yml` file in the current directory.
 
 
 ### For SSH configuration
