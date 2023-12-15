@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive {
 
-    private String password;
     private BaseMFA mfa;
 
     @Override
@@ -16,7 +15,7 @@ public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive
 
         String[] strings;
 
-        if (prompt[0].contains("OTP Code") && mfa != null) {
+        if ((prompt[0].contains("OTP Code") || prompt[0].contains("Verification code")) && mfa != null) {
             System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
             String opdCode = mfa.otpCode();
             System.out.println(STR."\u001B[32m\{opdCode}\u001B[0m");
@@ -40,7 +39,7 @@ public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive
 
     @Override
     public String getPassword() {
-        return password;
+        return null;
     }
 
     @Override
@@ -63,8 +62,7 @@ public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive
         System.err.println(message);
     }
 
-    public UserInfo(String password, BaseMFA mfa) {
-        this.password = password;
+    public UserInfo(BaseMFA mfa) {
         this.mfa = mfa;
     }
 

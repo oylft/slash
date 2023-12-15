@@ -55,7 +55,9 @@ public class SshClient {
 
             session.setConfig("StrictHostKeyChecking", "no");
 
-            session.setUserInfo(new UserInfo(ssh.password(), mfa));
+            session.setPassword(ssh.password());
+
+            session.setUserInfo(new UserInfo(mfa));
 
             session.connect(10 * 1000);
 
