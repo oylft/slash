@@ -1,6 +1,6 @@
 # Slash
 <a href="https://github.com/Rich-Harris/magic-string/blob/main/LICENSE.md">
-  <img src="https://github.com/wuhit/slash/blob/main/license.svg" alt="license">
+  <img src="https://github.com/wuhit/slash/blob/main/assets/license.svg" alt="license">
 </a>
 
 It's a small, fast utility for SSH and Sftp.
