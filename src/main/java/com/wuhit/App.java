@@ -32,6 +32,7 @@ public class App {
             Typewriter.print("Slash is done!");
             Typewriter.print(STR."Took: \{l}s");
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println(e.getMessage());
         } finally {
             if (slash != null) {

@@ -138,7 +138,11 @@ public class SshClient {
 
             String parentDir = absolutePath.substring(0, absolutePath.length() - fileName.length() - 1);
 
-            String relativePath = parentDir.substring(rootPath.length()).replaceAll(File.separator, "/");
+            String relativePath = parentDir.substring(rootPath.length());
+
+            if (StringUtils.isNotBlank(relativePath)) {
+                relativePath = relativePath.replaceAll(File.separator, "/");
+            }
 
             localFiles.add(new LocalFile(absolutePath, relativePath, fileName));
         }
