@@ -4,9 +4,7 @@ import com.jcraft.jsch.*;
 import com.wuhit.Logger;
 import com.wuhit.SlashException;
 import com.wuhit.StringUtils;
-import com.wuhit.configure.LocalFile;
-import com.wuhit.configure.Ssh;
-import com.wuhit.configure.SshTask;
+import com.wuhit.configure.*;
 import com.wuhit.configure.UserInfo;
 import com.wuhit.mfa.BaseMFA;
 import com.wuhit.mfa.GoogleMFA;
@@ -63,6 +61,8 @@ public class SshClient {
 
         } catch (JSchException e) {
             throw new SlashException(e.getMessage());
+        } finally {
+            OTPCodeStore.remove();
         }
 
         logger.info(STR."Connection to host \{user}@\{host} successful.");

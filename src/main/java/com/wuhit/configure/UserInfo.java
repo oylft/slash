@@ -1,6 +1,7 @@
 package com.wuhit.configure;
 
 import com.jcraft.jsch.UIKeyboardInteractive;
+import com.wuhit.StringUtils;
 import com.wuhit.mfa.BaseMFA;
 
 import java.util.Scanner;
@@ -13,23 +14,27 @@ public class UserInfo implements com.jcraft.jsch.UserInfo, UIKeyboardInteractive
     public String[] promptKeyboardInteractive(
             String destination, String name, String instruction, String[] prompt, boolean[] echo) {
 
-        String[] strings;
 
         if ((prompt[0].contains("OTP Code") || prompt[0].contains("Verification code")) && mfa != null) {
             System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
-            String opdCode = mfa.otpCode();
-            System.out.println(STR."\u001B[32m\{opdCode}\u001B[0m");
-            strings = new String[]{opdCode};
-        } else {
-            Scanner scanner = new Scanner(System.in);
-            System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
-            String input = scanner.nextLine().trim();
+            String otpCode = mfa.otpCode();
 
-            strings = new String[]{input};
+            String prevOtpCode = OTPCodeStore.get();
+
+            if (StringUtils.isBlank(prevOtpCode) || prevOtpCode.equals(otpCode) == false) {
+                System.out.println(STR."\u001B[32m\{otpCode}\u001B[0m");
+                OTPCodeStore.set(otpCode);
+                return new String[]{otpCode};
+            }
         }
 
 
-        return strings;
+        Scanner scanner = new Scanner(System.in);
+        System.out.println(STR."\u001B[32m\{destination} \{prompt[0]}\u001B[0m");
+        String input = scanner.nextLine().trim();
+
+        return new String[]{input};
+
     }
 
     @Override
