@@ -87,3 +87,27 @@ Uses the `config-dev.yml` file in the current directory.
       beforeCommand: pwd
       afterCommand: ls
 ```
+
+### Restart springboot project shell script example
+```bash
+#!/bin/bash
+
+jar_name=demo-0.0.1-SNAPSHOT
+
+
+
+pid=$(jps -ml | grep "$jar_name" | awk '{print $1}')
+
+echo "$jar_name pid: $pid"
+
+if [ -n "$pid" ]; then
+	kill -9 $pid 
+fi
+
+nohup java -jar ./${jar_name}.jar > /dev/null 2>&1 &
+
+
+pid=$(jps -ml | grep "$jar_name" | awk '{print $1}')
+
+echo "$jar_name pid: $pid"
+```
