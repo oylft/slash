@@ -18,6 +18,7 @@ Slash uses a `config-[alias].yml` file in the current directory.
 ```
 #### eg:
 ```bash
+  chmod u+x slash
   slash dev
 ```
 Uses the `config-dev.yml` file in the current directory.
